@@ -1,3 +1,4 @@
 # Large card data dumps — too big for GitHub (>100MB)
 data/all-cards-*.json
 data/*.json
+data/bulk/
