@@ -38,7 +38,14 @@ type BulkDataList struct {
 }
 
 func FetchBulkData() (*BulkDataList, error) {
-	resp, err := http.Get("https://api.scryfall.com/bulk-data")
+	req, err := http.NewRequest(http.MethodGet, "https://api.scryfall.com/bulk-data", nil)
+	if err != nil {
+		return nil, fmt.Errorf("building bulk data request: %w", err)
+	}
+	req.Header.Set("User-Agent", "mtgdb/1.0")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetching bulk data: %w", err)
 	}
@@ -58,7 +65,14 @@ func FetchBulkData() (*BulkDataList, error) {
 // DownloadBulkData streams the bulk data file to destPath.
 // The file is written as-is (compressed if the item uses gzip encoding).
 func DownloadBulkData(item BulkDataItem, destPath string) error {
-	resp, err := http.Get(item.DownloadURI)
+	req, err := http.NewRequest(http.MethodGet, item.DownloadURI, nil)
+	if err != nil {
+		return fmt.Errorf("building bulk data download request: %w", err)
+	}
+	req.Header.Set("User-Agent", "mtgdb/1.0")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("downloading bulk data: %w", err)
 	}
