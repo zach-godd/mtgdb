@@ -37,6 +37,8 @@ type BulkDataList struct {
 	Data    []BulkDataItem `json:"data"`
 }
 
+// FetchBulkData fetches bulk data from sryfall.com
+// Note: See https://scryfall.com/docs/api/bulk-data/all for Scryfall documentation
 func FetchBulkData() (*BulkDataList, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.scryfall.com/bulk-data", nil)
 	if err != nil {
