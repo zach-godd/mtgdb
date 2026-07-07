@@ -11,11 +11,21 @@ import (
 )
 
 // bulkDataDir is where downloaded Scryfall bulk data files are stored.
-const bulkDataDir = "data/bulk"
+// It is a var (not const) so tests can redirect it to a temp directory.
+var bulkDataDir = "data/bulk"
 
 // defaultBulkDataType is used when the caller does not specify a type.
 // "default_cards" has one entry per print, matching the fields in types.Card.
 const defaultBulkDataType = "default_cards"
+
+// fetchBulkData and downloadBulkData are indirections over the data package
+// functions so tests can substitute fakes instead of hitting the real
+// Scryfall API.
+// TODO: Refactor into a passed interface
+var (
+	fetchBulkData    = data.FetchBulkData
+	downloadBulkData = data.DownloadBulkData
+)
 
 // HandleFetchBulkData fetches the Scryfall bulk-data listing, selects the
 // item matching the "type" query parameter (default_cards if unset), and
@@ -31,7 +41,7 @@ func HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
 		bulkType = defaultBulkDataType
 	}
 
-	list, err := data.FetchBulkData()
+	list, err := fetchBulkData()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("fetching bulk data listing: %v", err), http.StatusBadGateway)
 		return
@@ -55,7 +65,7 @@ func HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
 	}
 	destPath := filepath.Join(bulkDataDir, item.Type+".json")
 
-	if err := data.DownloadBulkData(*item, destPath); err != nil {
+	if err := downloadBulkData(*item, destPath); err != nil {
 		http.Error(w, fmt.Sprintf("downloading bulk data: %v", err), http.StatusBadGateway)
 		return
 	}

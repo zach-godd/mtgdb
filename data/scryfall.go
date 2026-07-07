@@ -17,6 +17,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// importBatchSize number of documents to upload at once
+const importBatchSize = 500
+
 type BulkDataItem struct {
 	Object          string    `json:"object"`
 	ID              string    `json:"id"`
@@ -95,8 +98,6 @@ func DownloadBulkData(item BulkDataItem, destPath string) error {
 	}
 	return nil
 }
-
-const importBatchSize = 500
 
 // ImportBulkData reads a Scryfall bulk data JSON file (plain or gzip-compressed)
 // and upserts all cards into the named MongoDB collection in batches.
