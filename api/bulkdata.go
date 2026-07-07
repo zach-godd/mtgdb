@@ -18,19 +18,23 @@ var bulkDataDir = "data/bulk"
 // "default_cards" has one entry per print, matching the fields in types.Card.
 const defaultBulkDataType = "default_cards"
 
-// fetchBulkData and downloadBulkData are indirections over the data package
-// functions so tests can substitute fakes instead of hitting the real
-// Scryfall API.
-// TODO: Refactor into a passed interface
-var (
-	fetchBulkData    = data.FetchBulkData
-	downloadBulkData = data.DownloadBulkData
-)
+type API struct {
+	dataBackend DataRetriever
+}
+
+type DataRetriever interface {
+	FetchBulkData() (*data.BulkDataList, error)
+	DownloadBulkData(item data.BulkDataItem, destPath string) error
+}
+
+func NewAPI(d DataRetriever) API {
+	return API{dataBackend: d}
+}
 
 // HandleFetchBulkData fetches the Scryfall bulk-data listing, selects the
 // item matching the "type" query parameter (default_cards if unset), and
 // downloads it to a local file under data/bulk/.
-func HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
+func (a *API) HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -41,7 +45,7 @@ func HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
 		bulkType = defaultBulkDataType
 	}
 
-	list, err := fetchBulkData()
+	list, err := a.dataBackend.FetchBulkData()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("fetching bulk data listing: %v", err), http.StatusBadGateway)
 		return
@@ -65,7 +69,7 @@ func HandleFetchBulkData(w http.ResponseWriter, r *http.Request) {
 	}
 	destPath := filepath.Join(bulkDataDir, item.Type+".json")
 
-	if err := downloadBulkData(*item, destPath); err != nil {
+	if err := a.dataBackend.DownloadBulkData(*item, destPath); err != nil {
 		http.Error(w, fmt.Sprintf("downloading bulk data: %v", err), http.StatusBadGateway)
 		return
 	}
