@@ -40,6 +40,17 @@ type BulkDataList struct {
 	Data    []BulkDataItem `json:"data"`
 }
 
+// ScryfallClient is a DataRetriever backed by the real Scryfall API.
+type ScryfallClient struct{}
+
+func (ScryfallClient) FetchBulkData() (*BulkDataList, error) {
+	return FetchBulkData()
+}
+
+func (ScryfallClient) DownloadBulkData(item BulkDataItem, destPath string) error {
+	return DownloadBulkData(item, destPath)
+}
+
 // FetchBulkData fetches bulk data from sryfall.com
 // Note: See https://scryfall.com/docs/api/bulk-data/all for Scryfall documentation
 func FetchBulkData() (*BulkDataList, error) {
