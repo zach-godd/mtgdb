@@ -11,7 +11,7 @@ import (
 	"mtgdb/data"
 )
 
-// fakeDataRetriever is a DataRetriever backed by test-supplied funcs.
+// fakeDataRetriever implements DataRetriever backed by test-supplied funcs.
 type fakeDataRetriever struct {
 	fetch    func() (*data.BulkDataList, error)
 	download func(data.BulkDataItem, string) error
